@@ -169,7 +169,7 @@
 
       .toolbar {
         display: grid;
-        grid-template-columns: repeat(4, minmax(180px, 1fr));
+        grid-template-columns: repeat(5, minmax(160px, 1fr));
         gap: 12px;
         margin: 18px 0 16px;
       }
@@ -426,6 +426,7 @@
           <button class="secondary" type="button" id="limpiarBtn">Nuevo registro</button>
           <button class="secondary" type="button" id="imprimirBtn">Imprimir</button>
           <button class="success" type="button" id="excelBtn">Exportar a Excel</button>
+          <button class="danger" type="button" id="borrarTodoBtn">Borrar todo</button>
         </div>
 
         <div class="toolbar">
@@ -455,6 +456,16 @@
           <div class="field">
             <label for="filterMarca">Marca</label>
             <input id="filterMarca" type="text" placeholder="Ej. Nike" />
+          </div>
+
+          <div class="field">
+            <label for="filterFechaDesde">Desde</label>
+            <input id="filterFechaDesde" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="filterFechaHasta">Hasta</label>
+            <input id="filterFechaHasta" type="date" />
           </div>
         </div>
 
@@ -703,15 +714,20 @@
         const filterProducto = document.getElementById('filterProducto').value;
         const filterEstado = document.getElementById('filterEstado').value;
         const filterMarca = document.getElementById('filterMarca').value.trim().toLowerCase();
+        const filterFechaDesde = document.getElementById('filterFechaDesde').value;
+        const filterFechaHasta = document.getElementById('filterFechaHasta').value;
 
         const records = loadRecords();
         const filtered = records.filter((item) => {
+          const fecha = item.fecha === 'Sin fecha' ? '' : item.fecha;
           const searchText = `${item.cliente} ${item.marca} ${item.producto} ${item.estado} ${item.observaciones}`.toLowerCase();
           const matchesSearch = !search || searchText.includes(search);
           const matchesProducto = !filterProducto || item.producto === filterProducto;
           const matchesEstado = !filterEstado || item.estado === filterEstado;
           const matchesMarca = !filterMarca || item.marca.toLowerCase().includes(filterMarca);
-          return matchesSearch && matchesProducto && matchesEstado && matchesMarca;
+          const matchesDesde = !filterFechaDesde || !fecha || fecha >= filterFechaDesde;
+          const matchesHasta = !filterFechaHasta || !fecha || fecha <= filterFechaHasta;
+          return matchesSearch && matchesProducto && matchesEstado && matchesMarca && matchesDesde && matchesHasta;
         });
 
         const tbody = document.getElementById('registroBody');
@@ -818,7 +834,25 @@
       });
 
       document.getElementById('excelBtn').addEventListener('click', () => {
-        const records = loadRecords();
+        const search = document.getElementById('buscarInput').value.trim().toLowerCase();
+        const filterProducto = document.getElementById('filterProducto').value;
+        const filterEstado = document.getElementById('filterEstado').value;
+        const filterMarca = document.getElementById('filterMarca').value.trim().toLowerCase();
+        const filterFechaDesde = document.getElementById('filterFechaDesde').value;
+        const filterFechaHasta = document.getElementById('filterFechaHasta').value;
+
+        const records = loadRecords().filter((item) => {
+          const fecha = item.fecha === 'Sin fecha' ? '' : item.fecha;
+          const searchText = `${item.cliente} ${item.marca} ${item.producto} ${item.estado} ${item.observaciones}`.toLowerCase();
+          const matchesSearch = !search || searchText.includes(search);
+          const matchesProducto = !filterProducto || item.producto === filterProducto;
+          const matchesEstado = !filterEstado || item.estado === filterEstado;
+          const matchesMarca = !filterMarca || item.marca.toLowerCase().includes(filterMarca);
+          const matchesDesde = !filterFechaDesde || !fecha || fecha >= filterFechaDesde;
+          const matchesHasta = !filterFechaHasta || !fecha || fecha <= filterFechaHasta;
+          return matchesSearch && matchesProducto && matchesEstado && matchesMarca && matchesDesde && matchesHasta;
+        });
+
         const headers = [
           'Fecha', 'Cliente', 'Marca', 'Producto', 'Empaque', 'Cantidad recibida',
           'Pares recibidos', 'Docenas equivalentes', 'Cantidad entregada',
@@ -856,6 +890,13 @@
         showToast('Archivo exportado');
       });
 
+      document.getElementById('borrarTodoBtn').addEventListener('click', () => {
+        if (!confirm('¿Deseas borrar todos los registros?')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        renderRows();
+        showToast('Registros borrados');
+      });
+
       function updateSummary(list = loadRecords()) {
         let totalParesRecibidos = 0;
         let totalParesEntregados = 0;
@@ -875,7 +916,7 @@
         document.getElementById('totalCobro').textContent = `$${totalCobro.toFixed(2)}`;
       }
 
-      ['buscarInput', 'filterProducto', 'filterEstado', 'filterMarca'].forEach((id) => {
+      ['buscarInput', 'filterProducto', 'filterEstado', 'filterMarca', 'filterFechaDesde', 'filterFechaHasta'].forEach((id) => {
         document.getElementById(id).addEventListener('input', renderRows);
         document.getElementById(id).addEventListener('change', renderRows);
       });
