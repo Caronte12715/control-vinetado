@@ -212,6 +212,10 @@
         -webkit-backdrop-filter: blur(10px);
       }
 
+      .print-report {
+        display: none;
+      }
+
       .toolbar {
         display: grid;
         grid-template-columns: repeat(5, minmax(160px, 1fr));
@@ -514,26 +518,23 @@
 
       @media print {
         @page {
-          size: A4 landscape;
-          margin: 10mm;
+          size: A4 portrait;
+          margin: 12mm;
         }
 
-        body {
-          background: white;
+        body,
+        .container,
+        .panel,
+        .summary {
+          background: #fff !important;
+          color: #18212b !important;
         }
 
         .header-box,
         .info-bar,
         .panel > *:not(.summary),
-        .actions,
-        .toolbar,
-        .toast,
-        .table-actions,
-        #guardarBtn,
-        #limpiarBtn,
-        #imprimirBtn,
-        #excelBtn,
-        #borrarTodoBtn {
+        .summary h2,
+        .summary .table-wrap {
           display: none !important;
         }
 
@@ -544,7 +545,6 @@
         }
 
         .panel {
-          background: white;
           border: none;
           box-shadow: none;
           padding: 0;
@@ -553,37 +553,101 @@
         .summary {
           margin: 0;
           padding: 0;
-          background: white;
           border: none;
           box-shadow: none;
-        }
-
-        .summary h2 {
-          margin-bottom: 12px;
-          border-radius: 10px;
+          backdrop-filter: none;
         }
 
         .totals {
-          gap: 10px;
-          margin-bottom: 14px;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 8px;
+          margin: 14px 0 18px;
         }
 
         .total-card {
-          border-radius: 10px;
+          padding: 10px;
+          border: 1px solid #d8dee6;
+          border-radius: 5px;
           box-shadow: none;
-          background: #f5f8fc;
+          background: #f6f8fa !important;
+          break-inside: avoid;
         }
 
-        .table-wrap {
-          border: 1px solid #d5d9e0;
-          box-shadow: none;
-          border-radius: 10px;
-          overflow: visible;
+        .total-card label {
+          color: #586574;
+          font-size: 8pt;
+        }
+
+        .total-card strong {
+          color: #18212b;
+          font-size: 14pt;
+        }
+
+        .print-report {
+          display: block;
+        }
+
+        .print-report-header {
+          border-bottom: 2px solid #244b68;
+          padding-bottom: 9px;
+        }
+
+        .print-report-header h1 {
+          margin: 0;
+          color: #173d5f;
+          font-size: 18pt;
+        }
+
+        .print-report-header p {
+          margin: 5px 0 0;
+          color: #586574;
+          font-size: 9pt;
+        }
+
+        .print-table {
+          width: 100%;
+          min-width: 0;
+          border-collapse: collapse;
+          table-layout: fixed;
+          font-size: 8pt;
+        }
+
+        .print-table th,
+        .print-table td {
+          padding: 6px 5px;
+          border: 1px solid #d8dee6;
+          color: #18212b;
+          font-size: 8pt;
+          overflow-wrap: anywhere;
+          vertical-align: top;
+        }
+
+        .print-table th {
+          position: static;
+          background: #eaf0f5 !important;
+          color: #173d5f;
+          font-weight: 700;
+        }
+
+        .print-table tr {
+          break-inside: avoid;
+        }
+
+        .print-table td:nth-child(n + 4) {
+          text-align: right;
+        }
+
+        * {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
 
         table {
-          min-width: 100%;
-          font-size: 10pt;
+          page-break-inside: auto;
+        }
+
+        .total-card {
+          box-shadow: none;
         }
       }
     </style>
@@ -765,6 +829,26 @@
               <strong id="totalCobro">$0.00</strong>
             </div>
           </div>
+          <section class="print-report" aria-label="Reporte para impresión">
+            <header class="print-report-header">
+              <h1>Control de recepción y entrega</h1>
+              <p id="printReportMeta"></p>
+            </header>
+            <table class="print-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Cliente / marca</th>
+                  <th>Producto / empaque</th>
+                  <th>Recibidos</th>
+                  <th>Entregados</th>
+                  <th>Pendientes</th>
+                  <th>Cobro</th>
+                </tr>
+              </thead>
+              <tbody id="printReportBody"></tbody>
+            </table>
+          </section>
         </div>
 
       </div>
@@ -1096,8 +1180,53 @@
       });
 
       document.getElementById('imprimirBtn').addEventListener('click', () => {
+        buildPrintReport();
         window.print();
       });
+
+      function buildPrintReport() {
+        const records = getFilteredRecords();
+        const filters = [
+          document.getElementById('filterProducto').value,
+          document.getElementById('filterEstado').value,
+          document.getElementById('filterMarca').value.trim(),
+          document.getElementById('filterFechaDesde').value,
+          document.getElementById('filterFechaHasta').value
+        ].filter(Boolean);
+        const today = new Intl.DateTimeFormat('es-MX', { dateStyle: 'long' }).format(new Date());
+        document.getElementById('printReportMeta').textContent =
+          `${today} | ${records.length} registro(s)${filters.length ? ` | Filtros: ${filters.join(', ')}` : ''}`;
+
+        const tbody = document.getElementById('printReportBody');
+        tbody.replaceChildren();
+        records.forEach((item) => {
+          const row = document.createElement('tr');
+          const values = [
+            item.fecha || 'Sin fecha',
+            [item.cliente, item.marca].filter(Boolean).join(' / ') || 'Sin cliente',
+            [item.producto, item.empaque].filter(Boolean).join(' / '),
+            Number(item.paresRecibidos || 0).toFixed(2),
+            Number(item.paresEntregados || 0).toFixed(2),
+            Number(item.pendiente || 0).toFixed(2),
+            `$${Number(item.cobro || 0).toFixed(2)}`
+          ];
+          values.forEach((value) => {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            row.appendChild(cell);
+          });
+          tbody.appendChild(row);
+        });
+
+        if (!records.length) {
+          const row = document.createElement('tr');
+          const cell = document.createElement('td');
+          cell.colSpan = 7;
+          cell.textContent = 'No hay registros para los filtros seleccionados.';
+          row.appendChild(cell);
+          tbody.appendChild(row);
+        }
+      }
 
       document.getElementById('excelBtn').addEventListener('click', () => {
         const records = getFilteredRecords();
