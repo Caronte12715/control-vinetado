@@ -271,10 +271,11 @@
 
       .ref-box {
         margin-top: 24px;
-        background: #fff8e8;
-        border: 1px solid #f0d28b;
-        border-radius: 12px;
-        padding: 16px;
+        background: linear-gradient(135deg, #fffaf0 0%, #fff1d6 100%);
+        border: 1px solid rgba(169, 120, 28, 0.3);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 18px 32px rgba(111, 77, 14, 0.08);
         animation: fadeIn 0.8s ease;
       }
 
@@ -312,22 +313,121 @@
         transform: translateY(0);
       }
 
+      .ref-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(168, 120, 25, 0.2);
+      }
+
       .ref-box h3 {
-        margin-top: 0;
-        color: #7b4d00;
+        margin: 0;
+        color: #5f3d00;
+        font-size: 1.45rem;
       }
 
-      .ref-grid {
+      .ref-badge {
+        background: #5f3d00;
+        color: #fff6df;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+
+      .pricing-board {
         display: grid;
-        grid-template-columns: repeat(5, minmax(150px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(2, minmax(240px, 1fr));
+        gap: 18px;
       }
 
-      .ref-grid div {
-        background: rgba(255,255,255,0.45);
-        border: 1px solid #e9d599;
-        border-radius: 8px;
-        padding: 8px 10px;
+      .pricing-card {
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(146, 123, 60, 0.22);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 22px rgba(137, 96, 34, 0.08);
+      }
+
+      .pricing-card.zapatos {
+        border-top: 5px solid #1f4e78;
+      }
+
+      .pricing-card.chanclas {
+        border-top: 5px solid #d79a13;
+      }
+
+      .pricing-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, rgba(31,78,120,0.12), rgba(255,255,255,0.5));
+        padding: 14px 16px;
+      }
+
+      .pricing-top.chanclas {
+        background: linear-gradient(135deg, rgba(215,154,19,0.18), rgba(255,255,255,0.5));
+      }
+
+      .pricing-name {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #203b58;
+      }
+
+      .pricing-pill {
+        background: #203b58;
+        color: white;
+        border-radius: 99px;
+        padding: 6px 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .pricing-top.chanclas .pricing-pill {
+        background: #a87400;
+      }
+
+      .pricing-body {
+        padding: 12px 14px 14px;
+      }
+
+      .pricing-item {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px dashed rgba(122, 96, 35, 0.22);
+      }
+
+      .pricing-item:last-child {
+        border-bottom: none;
+      }
+
+      .pricing-item .pack {
+        font-weight: 700;
+        color: #4d3a18;
+      }
+
+      .pricing-item .eq {
+        color: #6f5e3b;
+        font-size: 0.88rem;
+        text-align: center;
+      }
+
+      .pricing-item .price {
+        color: #0d5a38;
+        font-weight: 800;
+        text-align: right;
       }
 
       @keyframes fadeIn {
@@ -534,49 +634,59 @@
         </div>
 
         <div class="ref-box">
-          <h3>Referencia de cobro</h3>
-          <div class="ref-grid">
-            <div><strong>Producto</strong></div>
-            <div><strong>Presentación</strong></div>
-            <div><strong>Equivalencia</strong></div>
-            <div><strong>Tarifa</strong></div>
-            <div><strong>Cobro</strong></div>
+          <div class="ref-header">
+            <h3>Referencia de cobro</h3>
+            <span class="ref-badge">Tarifas</span>
+          </div>
 
-            <div>Zapatos</div>
-            <div>½ docena</div>
-            <div>6 pares</div>
-            <div>$4.00/docena</div>
-            <div>$2.00</div>
+          <div class="pricing-board">
+            <article class="pricing-card zapatos">
+              <div class="pricing-top">
+                <span class="pricing-name">Zapatos</span>
+                <span class="pricing-pill">$4/docena</span>
+              </div>
+              <div class="pricing-body">
+                <div class="pricing-item">
+                  <span class="pack">½ docena</span>
+                  <span class="eq">6 pares</span>
+                  <span class="price">$2.00</span>
+                </div>
+                <div class="pricing-item">
+                  <span class="pack">1 docena</span>
+                  <span class="eq">12 pares</span>
+                  <span class="price">$4.00</span>
+                </div>
+                <div class="pricing-item">
+                  <span class="pack">1 saco</span>
+                  <span class="eq">60 pares</span>
+                  <span class="price">$20.00</span>
+                </div>
+              </div>
+            </article>
 
-            <div>Zapatos</div>
-            <div>1 docena</div>
-            <div>12 pares</div>
-            <div>$4.00/docena</div>
-            <div>$4.00</div>
-
-            <div>Zapatos</div>
-            <div>1 saco</div>
-            <div>5 docenas = 60 pares</div>
-            <div>$4.00/docena</div>
-            <div>$20.00</div>
-
-            <div>Chanclas</div>
-            <div>½ docena</div>
-            <div>6 pares</div>
-            <div>$1.00/docena</div>
-            <div>$0.50</div>
-
-            <div>Chanclas</div>
-            <div>1 docena</div>
-            <div>12 pares</div>
-            <div>$1.00/docena</div>
-            <div>$1.00</div>
-
-            <div>Chanclas</div>
-            <div>1 saco</div>
-            <div>5 docenas = 60 pares</div>
-            <div>$1.00/docena</div>
-            <div>$5.00</div>
+            <article class="pricing-card chanclas">
+              <div class="pricing-top chanclas">
+                <span class="pricing-name">Chanclas</span>
+                <span class="pricing-pill">$1/docena</span>
+              </div>
+              <div class="pricing-body">
+                <div class="pricing-item">
+                  <span class="pack">½ docena</span>
+                  <span class="eq">6 pares</span>
+                  <span class="price">$0.50</span>
+                </div>
+                <div class="pricing-item">
+                  <span class="pack">1 docena</span>
+                  <span class="eq">12 pares</span>
+                  <span class="price">$1.00</span>
+                </div>
+                <div class="pricing-item">
+                  <span class="pack">1 saco</span>
+                  <span class="eq">60 pares</span>
+                  <span class="price">$5.00</span>
+                </div>
+              </div>
+            </article>
           </div>
         </div>
       </div>
