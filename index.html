@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control de Recepción y Entrega</title>
+    <style>
+      :root {
+        --navy: #1f4e78;
+        --navy-dark: #173d5f;
+        --blue-soft: #d9eaf7;
+        --green: #c6efce;
+        --green-text: #006100;
+        --yellow: #fff2cc;
+        --yellow-text: #9c6500;
+        --gray: #f5f7fa;
+        --line: #d9e1f2;
+        --text: #1f1f1f;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, #eef4fb 0%, #f9fbff 100%);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: 1440px;
+        margin: 24px auto;
+        padding: 0 18px 36px;
+        animation: fadeInUp 0.6s ease;
+      }
+
+      .header-box {
+        background: var(--navy);
+        color: white;
+        border-radius: 14px 14px 0 0;
+        padding: 22px 24px;
+        border: 1px solid var(--line);
+        border-bottom: none;
+      }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+
+      .brand-copy {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .brand-tag {
+        display: inline-block;
+        background: rgba(246, 215, 122, 0.18);
+        color: #f8e8b2;
+        border: 1px solid rgba(246, 215, 122, 0.55);
+        border-radius: 999px;
+        padding: 5px 12px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .brand-mark {
+        width: 86px;
+        height: 86px;
+        object-fit: contain;
+        filter: drop-shadow(0 8px 18px rgba(246, 215, 122, 0.3));
+      }
+
+      .header-box h1 {
+        margin: 0;
+        font-size: clamp(1.4rem, 2vw, 2.2rem);
+        text-align: center;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+      }
+
+      .info-bar {
+        background: var(--blue-soft);
+        border: 1px solid var(--line);
+        border-top: none;
+        padding: 12px 18px;
+        text-align: center;
+        font-weight: 700;
+        color: #1c314c;
+      }
+
+      .panel {
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(31, 78, 120, 0.12);
+        border-radius: 0 0 22px 22px;
+        box-shadow: 0 18px 36px rgba(31, 78, 120, 0.08);
+        padding: 24px;
+        animation: fadeIn 0.7s ease;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(200px, 1fr));
+        gap: 16px 18px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      label {
+        font-weight: 700;
+        font-size: 0.92rem;
+      }
+
+      input, select, textarea, button {
+        font: inherit;
+      }
+
+      input, select, textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #cdd6e4;
+        border-radius: 8px;
+        background: #fff;
+        color: var(--text);
+      }
+
+      input[readonly] {
+        background: #f3f6fb;
+        color: #2b2b2b;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 90px;
+      }
+
+      .status-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        background: var(--yellow);
+        color: var(--yellow-text);
+      }
+
+      .actions {
+        display: flex;
+        justify-content: center;
+        margin-top: 22px;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 20px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(31, 78, 120, 0.15);
+        filter: brightness(0.98);
+      }
+
+      .primary {
+        background: var(--navy);
+        color: white;
+      }
+
+      .secondary {
+        background: #e9f1f9;
+        color: var(--navy-dark);
+      }
+
+      .success {
+        background: #e8f7ee;
+        color: #0f6b39;
+      }
+
+      .danger {
+        background: #fdecea;
+        color: #b42318;
+      }
+
+      .summary {
+        margin-top: 30px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(236,244,255,0.82) 100%);
+        border: 1px solid rgba(31, 78, 120, 0.12);
+        border-radius: 22px;
+        padding: 20px;
+        box-shadow: 0 18px 38px rgba(31, 78, 120, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(160px, 1fr));
+        gap: 12px;
+        margin: 18px 0 16px;
+      }
+
+      .toolbar .field {
+        margin: 0;
+      }
+
+      .summary h2 {
+        margin: 0 0 18px;
+        background: linear-gradient(135deg, #173d5f 0%, #1f4e78 30%, #346ea4 100%);
+        color: white;
+        padding: 14px 18px;
+        border-radius: 14px;
+        font-size: 1.08rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.24), 0 12px 24px rgba(31, 78, 120, 0.12);
+      }
+
+      .table-wrap {
+        background: rgba(255,255,255,0.8);
+        border: 1px solid rgba(31, 78, 120, 0.12);
+        border-radius: 18px;
+        overflow-x: auto;
+        box-shadow: 0 12px 24px rgba(31, 78, 120, 0.05);
+      }
+
+      table {
+        width: 100%;
+        min-width: 1250px;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        table-layout: fixed;
+      }
+
+      th, td {
+        padding: 12px 10px;
+        border: 1px solid rgba(31, 78, 120, 0.12);
+        text-align: left;
+        font-size: 0.91rem;
+        vertical-align: top;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        white-space: normal;
+      }
+
+      th {
+        background: linear-gradient(180deg, #edf5fd 0%, #e5f0fa 100%);
+        color: var(--navy-dark);
+        font-weight: 800;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        letter-spacing: 0.02em;
+      }
+
+      tbody tr:nth-child(even) {
+        background: #fafcff;
+      }
+
+      tbody tr:nth-child(odd) {
+        background: white;
+      }
+
+      tbody tr:hover {
+        background: linear-gradient(90deg, #eef7ff 0%, #f8fbff 100%);
+      }
+
+      .totals {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(180px, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .total-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f1f7ff 100%);
+        border: 1px solid rgba(31, 78, 120, 0.12);
+        border-radius: 16px;
+        padding: 16px 18px;
+        box-shadow: 0 10px 22px rgba(31, 78, 120, 0.06), inset 0 1px 0 rgba(255,255,255,0.8);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .total-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 24px rgba(31, 78, 120, 0.09);
+      }
+
+      .total-card label {
+        display: block;
+        margin-bottom: 8px;
+        color: #40607e;
+        font-size: 0.78rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .total-card strong {
+        font-size: 1.3rem;
+        color: var(--navy-dark);
+        font-weight: 800;
+      }
+
+      .ref-box {
+        margin-top: 24px;
+        background: linear-gradient(135deg, #fffaf0 0%, #fff1d6 100%);
+        border: 1px solid rgba(169, 120, 28, 0.3);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 18px 32px rgba(111, 77, 14, 0.08);
+        animation: fadeIn 0.8s ease;
+      }
+
+      .table-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .table-actions button {
+        padding: 7px 10px;
+        font-size: 0.8rem;
+      }
+
+      .toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        background: #173d5f;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(23, 61, 95, 0.2);
+        opacity: 0;
+        transform: translateY(12px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+        z-index: 9999;
+        font-weight: 700;
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .ref-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(168, 120, 25, 0.2);
+      }
+
+      .ref-box h3 {
+        margin: 0;
+        color: #5f3d00;
+        font-size: 1.45rem;
+      }
+
+      .ref-badge {
+        background: #5f3d00;
+        color: #fff6df;
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+
+      .pricing-board {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(240px, 1fr));
+        gap: 18px;
+      }
+
+      .pricing-card {
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(146, 123, 60, 0.22);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 22px rgba(137, 96, 34, 0.08);
+      }
+
+      .pricing-card.zapatos {
+        border-top: 5px solid #1f4e78;
+      }
+
+      .pricing-card.chanclas {
+        border-top: 5px solid #d79a13;
+      }
+
+      .pricing-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, rgba(31,78,120,0.12), rgba(255,255,255,0.5));
+        padding: 14px 16px;
+      }
+
+      .pricing-top.chanclas {
+        background: linear-gradient(135deg, rgba(215,154,19,0.18), rgba(255,255,255,0.5));
+      }
+
+      .pricing-name {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #203b58;
+      }
+
+      .pricing-pill {
+        background: #203b58;
+        color: white;
+        border-radius: 99px;
+        padding: 6px 10px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .pricing-top.chanclas .pricing-pill {
+        background: #a87400;
+      }
+
+      .pricing-body {
+        padding: 12px 14px 14px;
+      }
+
+      .pricing-item {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px dashed rgba(122, 96, 35, 0.22);
+      }
+
+      .pricing-item:last-child {
+        border-bottom: none;
+      }
+
+      .pricing-item .pack {
+        font-weight: 700;
+        color: #4d3a18;
+      }
+
+      .pricing-item .eq {
+        color: #6f5e3b;
+        font-size: 0.88rem;
+        text-align: center;
+      }
+
+      .pricing-item .price {
+        color: #0d5a38;
+        font-weight: 800;
+        text-align: right;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(200px, 1fr));
+        }
+
+        .totals,
+        .ref-grid {
+          grid-template-columns: repeat(2, minmax(160px, 1fr));
+        }
+      }
+
+      @media (max-width: 620px) {
+        .grid,
+        .totals,
+        .ref-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media print {
+        @page {
+          size: A4 landscape;
+          margin: 10mm;
+        }
+
+        body {
+          background: white;
+        }
+
+        .header-box,
+        .info-bar,
+        .panel > *:not(.summary),
+        .actions,
+        .toolbar,
+        .toast,
+        .table-actions,
+        #guardarBtn,
+        #limpiarBtn,
+        #imprimirBtn,
+        #excelBtn,
+        #borrarTodoBtn {
+          display: none !important;
+        }
+
+        .container {
+          max-width: 100%;
+          margin: 0;
+          padding: 0;
+        }
+
+        .panel {
+          background: white;
+          border: none;
+          box-shadow: none;
+          padding: 0;
+        }
+
+        .summary {
+          margin: 0;
+          padding: 0;
+          background: white;
+          border: none;
+          box-shadow: none;
+        }
+
+        .summary h2 {
+          margin-bottom: 12px;
+          border-radius: 10px;
+        }
+
+        .totals {
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+
+        .total-card {
+          border-radius: 10px;
+          box-shadow: none;
+          background: #f5f8fc;
+        }
+
+        .table-wrap {
+          border: 1px solid #d5d9e0;
+          box-shadow: none;
+          border-radius: 10px;
+          overflow: visible;
+        }
+
+        table {
+          min-width: 100%;
+          font-size: 10pt;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-box">
+        <div class="brand-row">
+          <img src="logo-manigoldo.svg" alt="Logo Manigoldo" class="brand-mark" />
+          <div class="brand-copy">
+            <div class="brand-tag">Manigoldo</div>
+            <h1>CONTROL DE RECEPCIÓN, VIÑETADO, ENTREGA Y COBRO</h1>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div id="toast" class="toast">Registro guardado</div>
+        <div class="grid">
+          <div class="field">
+            <label for="fecha">Fecha</label>
+            <input id="fecha" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="cliente">Cliente</label>
+            <input id="cliente" type="text" placeholder="Nombre del cliente" />
+          </div>
+
+          <div class="field">
+            <label for="marca">Marca del zapato</label>
+            <input id="marca" type="text" placeholder="Ej. Nike, Adidas, Puma" />
+          </div>
+
+          <div class="field">
+            <label for="producto">Producto</label>
+            <select id="producto">
+              <option value="">Seleccione</option>
+              <option value="Zapatos">Zapatos</option>
+              <option value="Chanclas">Chanclas</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="empaque">Tipo de empaque</label>
+            <select id="empaque">
+              <option value="">Seleccione</option>
+              <option value="Caja">Caja</option>
+              <option value="Docena">Docena</option>
+              <option value="Saco">Saco</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="cantRecibida">Cantidad recibida</label>
+            <input id="cantRecibida" type="number" min="0" step="0.5" placeholder="0" />
+          </div>
+
+          <div class="field">
+            <label for="paresRecibidos">Pares recibidos</label>
+            <input id="paresRecibidos" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="docenasEquiv">Docenas equivalentes</label>
+            <input id="docenasEquiv" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="cantEntregada">Cantidad entregada</label>
+            <input id="cantEntregada" type="number" min="0" step="0.5" placeholder="0" />
+          </div>
+
+          <div class="field">
+            <label for="paresEntregados">Pares entregados</label>
+            <input id="paresEntregados" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="docenasEntregadas">Docenas entregadas</label>
+            <input id="docenasEntregadas" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="pendiente">Pendiente (pares)</label>
+            <input id="pendiente" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="ajusteVinetado">Cobro extra</label>
+            <input id="ajusteVinetado" type="number" min="0" step="0.01" placeholder="0.00" />
+          </div>
+
+          <div class="field">
+            <label for="cobro">Cobro total</label>
+            <input id="cobro" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="estado">Estado</label>
+            <input id="estado" type="text" readonly value="PENDIENTE" />
+          </div>
+
+          <div class="field" style="grid-column: span 2;">
+            <label for="motivoExtra">Motivo del cobro extra</label>
+            <textarea id="motivoExtra" placeholder="Ej. viñetado extra, reparación, ajuste por talla, etc..."></textarea>
+          </div>
+
+          <div class="field" style="grid-column: span 2;">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" placeholder="Agregar nota o detalle del movimiento..."></textarea>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" type="button" id="guardarBtn">Guardar registro</button>
+          <button class="secondary" type="button" id="limpiarBtn">Nuevo registro</button>
+          <button class="secondary" type="button" id="imprimirBtn">Imprimir</button>
+          <button class="success" type="button" id="excelBtn">Exportar a Excel</button>
+          <button class="danger" type="button" id="borrarTodoBtn">Borrar todo</button>
+        </div>
+
+        <div class="toolbar">
+          <div class="field">
+            <label for="buscarInput">Buscar</label>
+            <input id="buscarInput" type="text" placeholder="Cliente, marca, producto..." />
+          </div>
+
+          <div class="field">
+            <label for="filterProducto">Producto</label>
+            <select id="filterProducto">
+              <option value="">Todos</option>
+              <option value="Zapatos">Zapatos</option>
+              <option value="Chanclas">Chanclas</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="filterEstado">Estado</label>
+            <select id="filterEstado">
+              <option value="">Todos</option>
+              <option value="ENTREGADO">ENTREGADO</option>
+              <option value="PENDIENTE">PENDIENTE</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="filterMarca">Marca</label>
+            <input id="filterMarca" type="text" placeholder="Ej. Nike" />
+          </div>
+
+          <div class="field">
+            <label for="filterFechaDesde">Desde</label>
+            <input id="filterFechaDesde" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="filterFechaHasta">Hasta</label>
+            <input id="filterFechaHasta" type="date" />
+          </div>
+        </div>
+
+        <div class="summary">
+          <h2>RESUMEN</h2>
+          <div class="totals">
+            <div class="total-card">
+              <label>Total pares recibidos</label>
+              <strong id="totalRecibidos">0</strong>
+            </div>
+            <div class="total-card">
+              <label>Total pares entregados</label>
+              <strong id="totalEntregados">0</strong>
+            </div>
+            <div class="total-card">
+              <label>Total pares pendientes</label>
+              <strong id="totalPendientes">0</strong>
+            </div>
+            <div class="total-card">
+              <label>Total a cobrar</label>
+              <strong id="totalCobro">$0.00</strong>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      const fields = {
+        marca: document.getElementById('marca'),
+        producto: document.getElementById('producto'),
+        empaque: document.getElementById('empaque'),
+        cantRecibida: document.getElementById('cantRecibida'),
+        cantEntregada: document.getElementById('cantEntregada'),
+        paresRecibidos: document.getElementById('paresRecibidos'),
+        docenasEquiv: document.getElementById('docenasEquiv'),
+        paresEntregados: document.getElementById('paresEntregados'),
+        docenasEntregadas: document.getElementById('docenasEntregadas'),
+        pendiente: document.getElementById('pendiente'),
+        ajusteVinetado: document.getElementById('ajusteVinetado'),
+        cobro: document.getElementById('cobro'),
+        estado: document.getElementById('estado')
+      };
+
+      const STORAGE_KEY = 'control_vinetado_records_v1';
+      let editId = null;
+
+      const registroTable = document.createElement('table');
+      registroTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Marca</th>
+            <th>Producto</th>
+            <th>Empaque</th>
+            <th>Cant. recibida</th>
+            <th>Pares recibidos</th>
+            <th>Docenas</th>
+            <th>Cant. entregada</th>
+            <th>Pares entregados</th>
+            <th>Docenas entregadas</th>
+            <th>Pendiente</th>
+            <th>Ajuste extra</th>
+            <th>Motivo extra</th>
+            <th>Cobro</th>
+            <th>Estado</th>
+            <th>Observaciones</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="registroBody"></tbody>
+      `;
+
+      const summaryContainer = document.querySelector('.summary');
+      const tableWrap = document.createElement('div');
+      tableWrap.className = 'table-wrap';
+      tableWrap.appendChild(registroTable);
+      summaryContainer.appendChild(tableWrap);
+
+      function loadRecords() {
+        try {
+          const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+          return Array.isArray(stored) ? stored : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function saveRecords(records) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      }
+
+      function getPares(cantidad, empaque) {
+        if (!cantidad || !empaque) return 0;
+        const qty = Number(cantidad);
+        if (empaque === 'Caja' || empaque === 'Docena') return qty * 12;
+        if (empaque === 'Saco') return qty * 60;
+        return 0;
+      }
+
+      function calcular() {
+        const qtyRecibida = Number(fields.cantRecibida.value || 0);
+        const qtyEntregada = Number(fields.cantEntregada.value || 0);
+        const empaque = fields.empaque.value;
+        const producto = fields.producto.value;
+        const ajusteVinetado = Number(fields.ajusteVinetado.value || 0);
+
+        const paresRecibidos = getPares(qtyRecibida, empaque);
+        const docenasRecibidas = paresRecibidos / 12;
+        const paresEntregados = getPares(qtyEntregada, empaque);
+        const docenasEntregadas = paresEntregados / 12;
+        const pendiente = Math.max(paresRecibidos - paresEntregados, 0);
+
+        const precioDocena = producto === 'Zapatos' ? 4 : producto === 'Chanclas' ? 1 : 0;
+        const cobroBase = docenasEntregadas * precioDocena;
+        const cobro = cobroBase + ajusteVinetado;
+
+        fields.paresRecibidos.value = paresRecibidos.toFixed(2);
+        fields.docenasEquiv.value = docenasRecibidas.toFixed(2);
+        fields.paresEntregados.value = paresEntregados.toFixed(2);
+        fields.docenasEntregadas.value = docenasEntregadas.toFixed(2);
+        fields.pendiente.value = pendiente.toFixed(2);
+        fields.cobro.value = cobro.toFixed(2);
+
+        let estado = 'PENDIENTE';
+        if (paresRecibidos > 0 && pendiente === 0) {
+          estado = 'ENTREGADO';
+        }
+
+        fields.estado.value = estado;
+        fields.estado.style.background = estado === 'ENTREGADO' ? '#c6efce' : '#fff2cc';
+        fields.estado.style.color = estado === 'ENTREGADO' ? '#006100' : '#9c6500';
+        fields.estado.style.fontWeight = '700';
+      }
+
+      Object.values(fields).forEach((field) => {
+        if (!field) return;
+        field.addEventListener('input', calcular);
+        field.addEventListener('change', calcular);
+      });
+
+      function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1800);
+      }
+
+      function buildRecordFromForm() {
+        const fecha = document.getElementById('fecha').value || 'Sin fecha';
+        const cliente = document.getElementById('cliente').value || 'Sin cliente';
+        const marca = fields.marca.value || 'Sin marca';
+        const producto = fields.producto.value || '---';
+        const empaque = fields.empaque.value || '---';
+        const cantRecibida = fields.cantRecibida.value || '0';
+        const paresRecibidos = fields.paresRecibidos.value || '0';
+        const docenasEquiv = fields.docenasEquiv.value || '0';
+        const cantEntregada = fields.cantEntregada.value || '0';
+        const paresEntregados = fields.paresEntregados.value || '0';
+        const docenasEntregadas = fields.docenasEntregadas.value || '0';
+        const pendiente = fields.pendiente.value || '0';
+        const ajusteVinetado = fields.ajusteVinetado.value || '0';
+        const cobro = fields.cobro.value || '0';
+        const estado = fields.estado.value || 'PENDIENTE';
+        const motivoExtra = document.getElementById('motivoExtra').value || 'Sin motivo';
+        const observaciones = document.getElementById('observaciones').value || 'Sin observaciones';
+
+        return {
+          id: Date.now() + Math.random(),
+          fecha,
+          cliente,
+          marca,
+          producto,
+          empaque,
+          cantRecibida,
+          paresRecibidos,
+          docenasEquiv,
+          cantEntregada,
+          paresEntregados,
+          docenasEntregadas,
+          pendiente,
+          ajusteVinetado,
+          cobro,
+          estado,
+          motivoExtra,
+          observaciones
+        };
+      }
+
+      function clearForm() {
+        editId = null;
+        document.getElementById('fecha').value = '';
+        document.getElementById('cliente').value = '';
+        fields.marca.value = '';
+        fields.producto.value = '';
+        fields.empaque.value = '';
+        fields.cantRecibida.value = '';
+        fields.cantEntregada.value = '';
+        fields.ajusteVinetado.value = '';
+        document.getElementById('motivoExtra').value = '';
+        document.getElementById('observaciones').value = '';
+        ['paresRecibidos','docenasEquiv','paresEntregados','docenasEquiv','docenasEntregadas','pendiente','cobro','estado'].forEach((id) => {
+          const el = document.getElementById(id);
+          el.value = '';
+        });
+        const fieldEstado = document.getElementById('estado');
+        fieldEstado.value = 'PENDIENTE';
+        fieldEstado.style.background = '#fff2cc';
+        fieldEstado.style.color = '#9c6500';
+        const saveBtn = document.getElementById('guardarBtn');
+        saveBtn.textContent = 'Guardar registro';
+      }
+
+      function getFilteredRecords() {
+        const search = document.getElementById('buscarInput').value.trim().toLowerCase();
+        const filterProducto = document.getElementById('filterProducto').value;
+        const filterEstado = document.getElementById('filterEstado').value;
+        const filterMarca = document.getElementById('filterMarca').value.trim().toLowerCase();
+        const filterFechaDesde = document.getElementById('filterFechaDesde').value;
+        const filterFechaHasta = document.getElementById('filterFechaHasta').value;
+
+        const records = loadRecords();
+        return records.filter((item) => {
+          const fecha = item.fecha === 'Sin fecha' ? '' : item.fecha;
+          const searchText = `${item.cliente} ${item.marca} ${item.producto} ${item.estado} ${item.observaciones}`.toLowerCase();
+          const matchesSearch = !search || searchText.includes(search);
+          const matchesProducto = !filterProducto || item.producto === filterProducto;
+          const matchesEstado = !filterEstado || item.estado === filterEstado;
+          const matchesMarca = !filterMarca || item.marca.toLowerCase().includes(filterMarca);
+          const matchesDesde = !filterFechaDesde || !fecha || fecha >= filterFechaDesde;
+          const matchesHasta = !filterFechaHasta || !fecha || fecha <= filterFechaHasta;
+          return matchesSearch && matchesProducto && matchesEstado && matchesMarca && matchesDesde && matchesHasta;
+        });
+      }
+
+      function renderRows() {
+        const filtered = getFilteredRecords();
+        const tbody = document.getElementById('registroBody');
+        tbody.innerHTML = '';
+
+        filtered.forEach((item) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.fecha}</td>
+            <td>${item.cliente}</td>
+            <td>${item.marca}</td>
+            <td>${item.producto}</td>
+            <td>${item.empaque}</td>
+            <td>${item.cantRecibida}</td>
+            <td>${item.paresRecibidos}</td>
+            <td>${item.docenasEquiv}</td>
+            <td>${item.cantEntregada}</td>
+            <td>${item.paresEntregados}</td>
+            <td>${item.docenasEntregadas}</td>
+            <td>${item.pendiente}</td>
+            <td>$${Number(item.ajusteVinetado || 0).toFixed(2)}</td>
+            <td>${item.motivoExtra || 'Sin motivo'}</td>
+            <td>$${Number(item.cobro).toFixed(2)}</td>
+            <td>${item.estado}</td>
+            <td>${item.observaciones}</td>
+            <td>
+              <div class="table-actions">
+                <button class="secondary" type="button" data-edit="${item.id}">Editar</button>
+                <button class="danger" type="button" data-delete="${item.id}">Eliminar</button>
+              </div>
+            </td>
+          `;
+          row.style.animation = 'fadeIn 0.35s ease';
+          tbody.appendChild(row);
+        });
+
+        bindTableActions();
+        updateSummary(filtered);
+      }
+
+      function bindTableActions() {
+        document.querySelectorAll('[data-edit]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const id = String(button.dataset.edit);
+            const records = loadRecords();
+            const item = records.find((row) => String(row.id) === id);
+            if (!item) return;
+
+            editId = id;
+            document.getElementById('fecha').value = item.fecha === 'Sin fecha' ? '' : item.fecha;
+            document.getElementById('cliente').value = item.cliente === 'Sin cliente' ? '' : item.cliente;
+            fields.marca.value = item.marca === 'Sin marca' ? '' : item.marca;
+            fields.producto.value = item.producto;
+            fields.empaque.value = item.empaque;
+            fields.cantRecibida.value = item.cantRecibida;
+            fields.cantEntregada.value = item.cantEntregada;
+            document.getElementById('motivoExtra').value = item.motivoExtra === 'Sin motivo' ? '' : item.motivoExtra;
+            document.getElementById('observaciones').value = item.observaciones === 'Sin observaciones' ? '' : item.observaciones;
+            fields.ajusteVinetado.value = item.ajusteVinetado || '0';
+            calcular();
+
+            const saveBtn = document.getElementById('guardarBtn');
+            saveBtn.textContent = 'Actualizar registro';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        });
+
+        document.querySelectorAll('[data-delete]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const id = String(button.dataset.delete);
+            const records = loadRecords();
+            const filtered = records.filter((row) => String(row.id) !== id);
+            saveRecords(filtered);
+            renderRows();
+            showToast('Registro eliminado');
+          });
+        });
+      }
+
+      document.getElementById('guardarBtn').addEventListener('click', () => {
+        const fecha = document.getElementById('fecha').value;
+        const cliente = document.getElementById('cliente').value.trim();
+        const producto = fields.producto.value;
+        const empaque = fields.empaque.value;
+        const cantRecibida = Number(fields.cantRecibida.value || 0);
+
+        if (!fecha || !cliente || !producto || !empaque || cantRecibida <= 0) {
+          showToast('Completa fecha, cliente, producto, empaque y cantidad recibida');
+          return;
+        }
+
+        const records = loadRecords();
+        const nuevoRegistro = buildRecordFromForm();
+
+        if (editId) {
+          const index = records.findIndex((row) => String(row.id) === String(editId));
+          if (index >= 0) {
+            nuevoRegistro.id = editId;
+            records[index] = nuevoRegistro;
+            saveRecords(records);
+            showToast('Registro actualizado');
+          }
+        } else {
+          records.push(nuevoRegistro);
+          saveRecords(records);
+          showToast('Registro guardado');
+        }
+
+        clearForm();
+        renderRows();
+      });
+
+      document.getElementById('limpiarBtn').addEventListener('click', () => {
+        clearForm();
+      });
+
+      document.getElementById('imprimirBtn').addEventListener('click', () => {
+        window.print();
+      });
+
+      document.getElementById('excelBtn').addEventListener('click', () => {
+        const records = getFilteredRecords();
+        const headers = [
+          'Fecha', 'Cliente', 'Marca', 'Producto', 'Empaque', 'Cantidad recibida',
+          'Pares recibidos', 'Docenas equivalentes', 'Cantidad entregada',
+          'Pares entregados', 'Docenas entregadas', 'Pendiente', 'Ajuste extra', 'Motivo extra', 'Cobro', 'Estado', 'Observaciones'
+        ];
+
+        const rows = records.map((item) => [
+          item.fecha,
+          item.cliente,
+          item.marca,
+          item.producto,
+          item.empaque,
+          item.cantRecibida,
+          item.paresRecibidos,
+          item.docenasEquiv,
+          item.cantEntregada,
+          item.paresEntregados,
+          item.docenasEntregadas,
+          item.pendiente,
+          item.ajusteVinetado || 0,
+          item.motivoExtra || 'Sin motivo',
+          item.cobro,
+          item.estado,
+          item.observaciones
+        ]);
+
+        const tableHtml = `
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <style>
+              body { font-family: Arial, sans-serif; background: #f5f8fd; padding: 20px; }
+              .title {
+                font-size: 24px;
+                font-weight: 700;
+                color: #173d5f;
+                margin-bottom: 12px;
+              }
+              table {
+                border-collapse: collapse;
+                width: 100%;
+                background: #fff;
+                border: 1px solid #c9d4e4;
+              }
+              th, td {
+                border: 1px solid #c9d4e4;
+                padding: 8px 10px;
+                text-align: left;
+                font-size: 11px;
+              }
+              th {
+                background: #eaf2fb;
+                color: #173d5f;
+                font-weight: 700;
+              }
+              tr:nth-child(even) td { background: #fafcff; }
+            </style>
+          </head>
+          <body>
+            <div class="title">Control de Recepción, Viñetado, Entrega y Cobro</div>
+            <table>
+              <thead>
+                <tr>
+                  ${headers.map((header) => `<th>${header}</th>`).join('')}
+                </tr>
+              </thead>
+              <tbody>
+                ${rows.map((row) => `
+                  <tr>
+                    ${row.map((value) => `<td>${String(value ?? '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</td>`).join('')}
+                  </tr>
+                `).join('') || '<tr><td colspan="15">Sin registros</td></tr>'}
+              </tbody>
+            </table>
+          </body>
+          </html>
+        `;
+
+        const blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'control_vinetado.xls';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showToast('Excel exportado');
+      });
+
+      document.getElementById('borrarTodoBtn').addEventListener('click', () => {
+        if (!confirm('¿Deseas borrar todos los registros?')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        renderRows();
+        showToast('Registros borrados');
+      });
+
+      function updateSummary(list = loadRecords()) {
+        let totalParesRecibidos = 0;
+        let totalParesEntregados = 0;
+        let totalPendientes = 0;
+        let totalCobro = 0;
+
+        list.forEach((item) => {
+          totalParesRecibidos += Number(item.paresRecibidos || 0);
+          totalParesEntregados += Number(item.paresEntregados || 0);
+          totalPendientes += Number(item.pendiente || 0);
+          totalCobro += Number(item.cobro || 0);
+        });
+
+        document.getElementById('totalRecibidos').textContent = totalParesRecibidos.toFixed(2);
+        document.getElementById('totalEntregados').textContent = totalParesEntregados.toFixed(2);
+        document.getElementById('totalPendientes').textContent = totalPendientes.toFixed(2);
+        document.getElementById('totalCobro').textContent = `$${totalCobro.toFixed(2)}`;
+      }
+
+      ['buscarInput', 'filterProducto', 'filterEstado', 'filterMarca', 'filterFechaDesde', 'filterFechaHasta'].forEach((id) => {
+        document.getElementById(id).addEventListener('input', renderRows);
+        document.getElementById(id).addEventListener('change', renderRows);
+      });
+
+      calcular();
+      renderRows();
+    </script>
+  </body>
+</html>
