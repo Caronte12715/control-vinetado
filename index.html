@@ -158,8 +158,24 @@
         color: #0f6b39;
       }
 
+      .danger {
+        background: #fdecea;
+        color: #b42318;
+      }
+
       .summary {
         margin-top: 30px;
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(180px, 1fr));
+        gap: 12px;
+        margin: 18px 0 16px;
+      }
+
+      .toolbar .field {
+        margin: 0;
       }
 
       .summary h2 {
@@ -224,6 +240,18 @@
         border-radius: 12px;
         padding: 16px;
         animation: fadeIn 0.8s ease;
+      }
+
+      .table-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .table-actions button {
+        padding: 7px 10px;
+        font-size: 0.8rem;
       }
 
       .toast {
@@ -395,9 +423,39 @@
 
         <div class="actions">
           <button class="primary" type="button" id="guardarBtn">Guardar registro</button>
-          <button class="secondary" type="button" id="limpiarBtn">Limpiar formulario</button>
+          <button class="secondary" type="button" id="limpiarBtn">Nuevo registro</button>
           <button class="secondary" type="button" id="imprimirBtn">Imprimir</button>
           <button class="success" type="button" id="excelBtn">Exportar a Excel</button>
+        </div>
+
+        <div class="toolbar">
+          <div class="field">
+            <label for="buscarInput">Buscar</label>
+            <input id="buscarInput" type="text" placeholder="Cliente, marca, producto..." />
+          </div>
+
+          <div class="field">
+            <label for="filterProducto">Producto</label>
+            <select id="filterProducto">
+              <option value="">Todos</option>
+              <option value="Zapatos">Zapatos</option>
+              <option value="Chanclas">Chanclas</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="filterEstado">Estado</label>
+            <select id="filterEstado">
+              <option value="">Todos</option>
+              <option value="ENTREGADO">ENTREGADO</option>
+              <option value="PENDIENTE">PENDIENTE</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="filterMarca">Marca</label>
+            <input id="filterMarca" type="text" placeholder="Ej. Nike" />
+          </div>
         </div>
 
         <div class="summary">
@@ -487,6 +545,9 @@
         estado: document.getElementById('estado')
       };
 
+      const STORAGE_KEY = 'control_vinetado_records_v1';
+      let editId = null;
+
       const registroTable = document.createElement('table');
       registroTable.innerHTML = `
         <thead>
@@ -506,6 +567,7 @@
             <th>Cobro</th>
             <th>Estado</th>
             <th>Observaciones</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody id="registroBody"></tbody>
@@ -513,6 +575,19 @@
 
       const summaryContainer = document.querySelector('.summary');
       summaryContainer.appendChild(registroTable);
+
+      function loadRecords() {
+        try {
+          const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+          return Array.isArray(stored) ? stored : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function saveRecords(records) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      }
 
       function getPares(cantidad, empaque) {
         if (!cantidad || !empaque) return 0;
@@ -568,7 +643,7 @@
         setTimeout(() => toast.classList.remove('show'), 1800);
       }
 
-      document.getElementById('guardarBtn').addEventListener('click', () => {
+      function buildRecordFromForm() {
         const fecha = document.getElementById('fecha').value || 'Sin fecha';
         const cliente = document.getElementById('cliente').value || 'Sin cliente';
         const marca = fields.marca.value || 'Sin marca';
@@ -585,34 +660,28 @@
         const estado = fields.estado.value || 'PENDIENTE';
         const observaciones = document.getElementById('observaciones').value || 'Sin observaciones';
 
-        const tbody = document.getElementById('registroBody');
-        const row = document.createElement('tr');
+        return {
+          id: Date.now() + Math.random(),
+          fecha,
+          cliente,
+          marca,
+          producto,
+          empaque,
+          cantRecibida,
+          paresRecibidos,
+          docenasEquiv,
+          cantEntregada,
+          paresEntregados,
+          docenasEntregadas,
+          pendiente,
+          cobro,
+          estado,
+          observaciones
+        };
+      }
 
-        row.innerHTML = `
-          <td>${fecha}</td>
-          <td>${cliente}</td>
-          <td>${marca}</td>
-          <td>${producto}</td>
-          <td>${empaque}</td>
-          <td>${cantRecibida}</td>
-          <td>${paresRecibidos}</td>
-          <td>${docenasEquiv}</td>
-          <td>${cantEntregada}</td>
-          <td>${paresEntregados}</td>
-          <td>${docenasEntregadas}</td>
-          <td>${pendiente}</td>
-          <td>$${Number(cobro).toFixed(2)}</td>
-          <td>${estado}</td>
-          <td>${observaciones}</td>
-        `;
-
-        row.style.animation = 'fadeIn 0.35s ease';
-        tbody.appendChild(row);
-        updateSummary();
-        showToast('Registro guardado');
-      });
-
-      document.getElementById('limpiarBtn').addEventListener('click', () => {
+      function clearForm() {
+        editId = null;
         document.getElementById('fecha').value = '';
         document.getElementById('cliente').value = '';
         fields.marca.value = '';
@@ -625,6 +694,123 @@
           const el = document.getElementById(id);
           el.value = '';
         });
+        const saveBtn = document.getElementById('guardarBtn');
+        saveBtn.textContent = 'Guardar registro';
+      }
+
+      function renderRows() {
+        const search = document.getElementById('buscarInput').value.trim().toLowerCase();
+        const filterProducto = document.getElementById('filterProducto').value;
+        const filterEstado = document.getElementById('filterEstado').value;
+        const filterMarca = document.getElementById('filterMarca').value.trim().toLowerCase();
+
+        const records = loadRecords();
+        const filtered = records.filter((item) => {
+          const searchText = `${item.cliente} ${item.marca} ${item.producto} ${item.estado} ${item.observaciones}`.toLowerCase();
+          const matchesSearch = !search || searchText.includes(search);
+          const matchesProducto = !filterProducto || item.producto === filterProducto;
+          const matchesEstado = !filterEstado || item.estado === filterEstado;
+          const matchesMarca = !filterMarca || item.marca.toLowerCase().includes(filterMarca);
+          return matchesSearch && matchesProducto && matchesEstado && matchesMarca;
+        });
+
+        const tbody = document.getElementById('registroBody');
+        tbody.innerHTML = '';
+
+        filtered.forEach((item) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.fecha}</td>
+            <td>${item.cliente}</td>
+            <td>${item.marca}</td>
+            <td>${item.producto}</td>
+            <td>${item.empaque}</td>
+            <td>${item.cantRecibida}</td>
+            <td>${item.paresRecibidos}</td>
+            <td>${item.docenasEquiv}</td>
+            <td>${item.cantEntregada}</td>
+            <td>${item.paresEntregados}</td>
+            <td>${item.docenasEntregadas}</td>
+            <td>${item.pendiente}</td>
+            <td>$${Number(item.cobro).toFixed(2)}</td>
+            <td>${item.estado}</td>
+            <td>${item.observaciones}</td>
+            <td>
+              <div class="table-actions">
+                <button class="secondary" type="button" data-edit="${item.id}">Editar</button>
+                <button class="danger" type="button" data-delete="${item.id}">Eliminar</button>
+              </div>
+            </td>
+          `;
+          row.style.animation = 'fadeIn 0.35s ease';
+          tbody.appendChild(row);
+        });
+
+        bindTableActions();
+        updateSummary(filtered);
+      }
+
+      function bindTableActions() {
+        document.querySelectorAll('[data-edit]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const id = String(button.dataset.edit);
+            const records = loadRecords();
+            const item = records.find((row) => String(row.id) === id);
+            if (!item) return;
+
+            editId = id;
+            document.getElementById('fecha').value = item.fecha === 'Sin fecha' ? '' : item.fecha;
+            document.getElementById('cliente').value = item.cliente === 'Sin cliente' ? '' : item.cliente;
+            fields.marca.value = item.marca === 'Sin marca' ? '' : item.marca;
+            fields.producto.value = item.producto;
+            fields.empaque.value = item.empaque;
+            fields.cantRecibida.value = item.cantRecibida;
+            fields.cantEntregada.value = item.cantEntregada;
+            document.getElementById('observaciones').value = item.observaciones === 'Sin observaciones' ? '' : item.observaciones;
+            calcular();
+
+            const saveBtn = document.getElementById('guardarBtn');
+            saveBtn.textContent = 'Actualizar registro';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        });
+
+        document.querySelectorAll('[data-delete]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const id = String(button.dataset.delete);
+            const records = loadRecords();
+            const filtered = records.filter((row) => String(row.id) !== id);
+            saveRecords(filtered);
+            renderRows();
+            showToast('Registro eliminado');
+          });
+        });
+      }
+
+      document.getElementById('guardarBtn').addEventListener('click', () => {
+        const records = loadRecords();
+        const nuevoRegistro = buildRecordFromForm();
+
+        if (editId) {
+          const index = records.findIndex((row) => String(row.id) === String(editId));
+          if (index >= 0) {
+            nuevoRegistro.id = editId;
+            records[index] = nuevoRegistro;
+            saveRecords(records);
+            showToast('Registro actualizado');
+          }
+        } else {
+          records.push(nuevoRegistro);
+          saveRecords(records);
+          showToast('Registro guardado');
+        }
+
+        clearForm();
+        renderRows();
+      });
+
+      document.getElementById('limpiarBtn').addEventListener('click', () => {
+        clearForm();
       });
 
       document.getElementById('imprimirBtn').addEventListener('click', () => {
@@ -632,15 +818,30 @@
       });
 
       document.getElementById('excelBtn').addEventListener('click', () => {
+        const records = loadRecords();
         const headers = [
           'Fecha', 'Cliente', 'Marca', 'Producto', 'Empaque', 'Cantidad recibida',
           'Pares recibidos', 'Docenas equivalentes', 'Cantidad entregada',
           'Pares entregados', 'Docenas entregadas', 'Pendiente', 'Cobro', 'Estado', 'Observaciones'
         ];
 
-        const rows = [...document.querySelectorAll('#registroBody tr')].map((row) =>
-          [...row.children].map((cell) => `"${String(cell.textContent || '').replace(/"/g, '""')}"`).join(',')
-        );
+        const rows = records.map((item) => [
+          item.fecha,
+          item.cliente,
+          item.marca,
+          item.producto,
+          item.empaque,
+          item.cantRecibida,
+          item.paresRecibidos,
+          item.docenasEquiv,
+          item.cantEntregada,
+          item.paresEntregados,
+          item.docenasEntregadas,
+          item.pendiente,
+          item.cobro,
+          item.estado,
+          item.observaciones
+        ].map((value) => `"${String(value || '').replace(/"/g, '""')}"`).join(','));
 
         const csvContent = [headers.join(','), ...rows].join('\n');
         const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
@@ -652,21 +853,20 @@
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+        showToast('Archivo exportado');
       });
 
-      function updateSummary() {
-        const rows = [...document.querySelectorAll('#registroBody tr')];
+      function updateSummary(list = loadRecords()) {
         let totalParesRecibidos = 0;
         let totalParesEntregados = 0;
         let totalPendientes = 0;
         let totalCobro = 0;
 
-        rows.forEach((row) => {
-          const cells = row.children;
-          totalParesRecibidos += Number(cells[5].textContent || 0);
-          totalParesEntregados += Number(cells[8].textContent || 0);
-          totalPendientes += Number(cells[10].textContent || 0);
-          totalCobro += Number((cells[11].textContent || '$0').replace('$', ''));
+        list.forEach((item) => {
+          totalParesRecibidos += Number(item.paresRecibidos || 0);
+          totalParesEntregados += Number(item.paresEntregados || 0);
+          totalPendientes += Number(item.pendiente || 0);
+          totalCobro += Number(item.cobro || 0);
         });
 
         document.getElementById('totalRecibidos').textContent = totalParesRecibidos.toFixed(2);
@@ -675,7 +875,13 @@
         document.getElementById('totalCobro').textContent = `$${totalCobro.toFixed(2)}`;
       }
 
+      ['buscarInput', 'filterProducto', 'filterEstado', 'filterMarca'].forEach((id) => {
+        document.getElementById(id).addEventListener('input', renderRows);
+        document.getElementById(id).addEventListener('change', renderRows);
+      });
+
       calcular();
+      renderRows();
     </script>
   </body>
 </html>
