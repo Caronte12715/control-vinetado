@@ -216,6 +216,10 @@
         display: none;
       }
 
+      .print-report-header {
+        display: none;
+      }
+
       .toolbar {
         display: grid;
         grid-template-columns: repeat(5, minmax(160px, 1fr));
@@ -588,6 +592,7 @@
         }
 
         .print-report-header {
+          display: block;
           border-bottom: 2px solid #244b68;
           padding-bottom: 9px;
         }
@@ -811,6 +816,10 @@
 
         <div class="summary">
           <h2>RESUMEN</h2>
+          <header class="print-report-header">
+            <h1>Control de recepción y entrega</h1>
+            <p id="printReportMeta"></p>
+          </header>
           <div class="totals">
             <div class="total-card">
               <label>Total pares recibidos</label>
@@ -830,10 +839,6 @@
             </div>
           </div>
           <section class="print-report" aria-label="Reporte para impresión">
-            <header class="print-report-header">
-              <h1>Control de recepción y entrega</h1>
-              <p id="printReportMeta"></p>
-            </header>
             <table class="print-table">
               <thead>
                 <tr>
