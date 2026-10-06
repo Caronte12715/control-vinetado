@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control de Recepción y Entrega</title>
+    <style>
+      :root {
+        --navy: #1f4e78;
+        --navy-dark: #173d5f;
+        --blue-soft: #d9eaf7;
+        --green: #c6efce;
+        --green-text: #006100;
+        --yellow: #fff2cc;
+        --yellow-text: #9c6500;
+        --gray: #f5f7fa;
+        --line: #d9e1f2;
+        --text: #1f1f1f;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, #eef4fb 0%, #f9fbff 100%);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: 1440px;
+        margin: 24px auto;
+        padding: 0 18px 36px;
+      }
+
+      .header-box {
+        background: var(--navy);
+        color: white;
+        border-radius: 14px 14px 0 0;
+        padding: 22px 24px;
+        border: 1px solid var(--line);
+        border-bottom: none;
+      }
+
+      .header-box h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 2vw, 2.2rem);
+        text-align: center;
+        letter-spacing: 0.02em;
+      }
+
+      .info-bar {
+        background: var(--blue-soft);
+        border: 1px solid var(--line);
+        border-top: none;
+        padding: 12px 18px;
+        text-align: center;
+        font-weight: 700;
+        color: #1c314c;
+      }
+
+      .panel {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 0 0 14px 14px;
+        box-shadow: 0 8px 18px rgba(31, 78, 120, 0.08);
+        padding: 24px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(200px, 1fr));
+        gap: 16px 18px;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      label {
+        font-weight: 700;
+        font-size: 0.92rem;
+      }
+
+      input, select, textarea, button {
+        font: inherit;
+      }
+
+      input, select, textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #cdd6e4;
+        border-radius: 8px;
+        background: #fff;
+        color: var(--text);
+      }
+
+      input[readonly] {
+        background: #f3f6fb;
+        color: #2b2b2b;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 90px;
+      }
+
+      .status-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        background: var(--yellow);
+        color: var(--yellow-text);
+      }
+
+      .actions {
+        display: flex;
+        justify-content: center;
+        margin-top: 22px;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: none;
+        border-radius: 10px;
+        padding: 12px 20px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s ease, filter 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        filter: brightness(0.98);
+      }
+
+      .primary {
+        background: var(--navy);
+        color: white;
+      }
+
+      .secondary {
+        background: #e9f1f9;
+        color: var(--navy-dark);
+      }
+
+      .summary {
+        margin-top: 30px;
+      }
+
+      .summary h2 {
+        margin: 0 0 14px;
+        background: var(--navy);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 1.05rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      th, td {
+        padding: 11px 10px;
+        border: 1px solid var(--line);
+        text-align: left;
+        font-size: 0.92rem;
+      }
+
+      th {
+        background: #eef5fb;
+        color: var(--navy-dark);
+        font-weight: 700;
+      }
+
+      .totals {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(180px, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .total-card {
+        background: #f7f9fc;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 14px;
+      }
+
+      .total-card label {
+        display: block;
+        margin-bottom: 6px;
+        color: #2a3c54;
+      }
+
+      .total-card strong {
+        font-size: 1.08rem;
+      }
+
+      .ref-box {
+        margin-top: 24px;
+        background: #fff8e8;
+        border: 1px solid #f0d28b;
+        border-radius: 12px;
+        padding: 16px;
+      }
+
+      .ref-box h3 {
+        margin-top: 0;
+        color: #7b4d00;
+      }
+
+      .ref-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(150px, 1fr));
+        gap: 10px;
+      }
+
+      .ref-grid div {
+        background: rgba(255,255,255,0.45);
+        border: 1px solid #e9d599;
+        border-radius: 8px;
+        padding: 8px 10px;
+      }
+
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: repeat(2, minmax(200px, 1fr));
+        }
+
+        .totals,
+        .ref-grid {
+          grid-template-columns: repeat(2, minmax(160px, 1fr));
+        }
+      }
+
+      @media (max-width: 620px) {
+        .grid,
+        .totals,
+        .ref-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-box">
+        <h1>CONTROL DE RECEPCIÓN, VIÑETADO, ENTREGA Y COBRO</h1>
+      </div>
+      <div class="info-bar">
+        ZAPATOS: $4.00 por docena. CHANCLAS: $1.00 por docena. Cada saco contiene 5 docenas = 60 pares.
+      </div>
+
+      <div class="panel">
+        <div class="grid">
+          <div class="field">
+            <label for="fecha">Fecha</label>
+            <input id="fecha" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="cliente">Cliente</label>
+            <input id="cliente" type="text" placeholder="Nombre del cliente" />
+          </div>
+
+          <div class="field">
+            <label for="producto">Producto</label>
+            <select id="producto">
+              <option value="">Seleccione</option>
+              <option value="Zapatos">Zapatos</option>
+              <option value="Chanclas">Chanclas</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="empaque">Tipo de empaque</label>
+            <select id="empaque">
+              <option value="">Seleccione</option>
+              <option value="Caja">Caja</option>
+              <option value="Docena">Docena</option>
+              <option value="Saco">Saco</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="cantRecibida">Cantidad recibida</label>
+            <input id="cantRecibida" type="number" min="0" step="0.5" placeholder="0" />
+          </div>
+
+          <div class="field">
+            <label for="paresRecibidos">Pares recibidos</label>
+            <input id="paresRecibidos" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="docenasEquiv">Docenas equivalentes</label>
+            <input id="docenasEquiv" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="cantEntregada">Cantidad entregada</label>
+            <input id="cantEntregada" type="number" min="0" step="0.5" placeholder="0" />
+          </div>
+
+          <div class="field">
+            <label for="paresEntregados">Pares entregados</label>
+            <input id="paresEntregados" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="docenasEntregadas">Docenas entregadas</label>
+            <input id="docenasEntregadas" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="pendiente">Pendiente (pares)</label>
+            <input id="pendiente" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="cobro">Cobro</label>
+            <input id="cobro" type="number" readonly />
+          </div>
+
+          <div class="field">
+            <label for="estado">Estado</label>
+            <input id="estado" type="text" readonly value="PENDIENTE" />
+          </div>
+
+          <div class="field" style="grid-column: span 3;">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" placeholder="Agregar nota o detalle del movimiento..."></textarea>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" type="button" id="guardarBtn">Guardar registro</button>
+          <button class="secondary" type="button" id="limpiarBtn">Limpiar formulario</button>
+        </div>
+
+        <div class="summary">
+          <h2>RESUMEN</h2>
+          <div class="totals">
+            <div class="total-card">
+              <label>Total pares recibidos</label>
+              <strong id="totalRecibidos">0</strong>
+            </div>
+            <div class="total-card">
+              <label>Total pares entregados</label>
+              <strong id="totalEntregados">0</strong>
+            </div>
+            <div class="total-card">
+              <label>Total pares pendientes</label>
+              <strong id="totalPendientes">0</strong>
+            </div>
+            <div class="total-card">
+              <label>Total a cobrar</label>
+              <strong id="totalCobro">$0.00</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="ref-box">
+          <h3>Referencia de cobro</h3>
+          <div class="ref-grid">
+            <div><strong>Producto</strong></div>
+            <div><strong>Presentación</strong></div>
+            <div><strong>Equivalencia</strong></div>
+            <div><strong>Tarifa</strong></div>
+            <div><strong>Cobro</strong></div>
+
+            <div>Zapatos</div>
+            <div>½ docena</div>
+            <div>6 pares</div>
+            <div>$4.00/docena</div>
+            <div>$2.00</div>
+
+            <div>Zapatos</div>
+            <div>1 docena</div>
+            <div>12 pares</div>
+            <div>$4.00/docena</div>
+            <div>$4.00</div>
+
+            <div>Zapatos</div>
+            <div>1 saco</div>
+            <div>5 docenas = 60 pares</div>
+            <div>$4.00/docena</div>
+            <div>$20.00</div>
+
+            <div>Chanclas</div>
+            <div>½ docena</div>
+            <div>6 pares</div>
+            <div>$1.00/docena</div>
+            <div>$0.50</div>
+
+            <div>Chanclas</div>
+            <div>1 docena</div>
+            <div>12 pares</div>
+            <div>$1.00/docena</div>
+            <div>$1.00</div>
+
+            <div>Chanclas</div>
+            <div>1 saco</div>
+            <div>5 docenas = 60 pares</div>
+            <div>$1.00/docena</div>
+            <div>$5.00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const fields = {
+        producto: document.getElementById('producto'),
+        empaque: document.getElementById('empaque'),
+        cantRecibida: document.getElementById('cantRecibida'),
+        cantEntregada: document.getElementById('cantEntregada'),
+        paresRecibidos: document.getElementById('paresRecibidos'),
+        docenasEquiv: document.getElementById('docenasEquiv'),
+        paresEntregados: document.getElementById('paresEntregados'),
+        docenasEntregadas: document.getElementById('docenasEntregadas'),
+        pendiente: document.getElementById('pendiente'),
+        cobro: document.getElementById('cobro'),
+        estado: document.getElementById('estado')
+      };
+
+      const registroTable = document.createElement('table');
+      registroTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Producto</th>
+            <th>Empaque</th>
+            <th>Cant. recibida</th>
+            <th>Pares recibidos</th>
+            <th>Docenas</th>
+            <th>Cant. entregada</th>
+            <th>Pares entregados</th>
+            <th>Docenas entregadas</th>
+            <th>Pendiente</th>
+            <th>Cobro</th>
+            <th>Estado</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody id="registroBody"></tbody>
+      `;
+
+      const summaryContainer = document.querySelector('.summary');
+      summaryContainer.appendChild(registroTable);
+
+      function getPares(cantidad, empaque) {
+        if (!cantidad || !empaque) return 0;
+        const qty = Number(cantidad);
+        if (empaque === 'Caja' || empaque === 'Docena') return qty * 12;
+        if (empaque === 'Saco') return qty * 60;
+        return 0;
+      }
+
+      function calcular() {
+        const qtyRecibida = Number(fields.cantRecibida.value || 0);
+        const qtyEntregada = Number(fields.cantEntregada.value || 0);
+        const empaque = fields.empaque.value;
+        const producto = fields.producto.value;
+
+        const paresRecibidos = getPares(qtyRecibida, empaque);
+        const docenasRecibidas = paresRecibidos / 12;
+        const paresEntregados = getPares(qtyEntregada, empaque);
+        const docenasEntregadas = paresEntregados / 12;
+        const pendiente = Math.max(paresRecibidos - paresEntregados, 0);
+
+        const cobro = producto === 'Chanclas'
+          ? docenasEntregadas * 1
+          : producto === 'Zapatos'
+            ? docenasEntregadas * 4
+            : 0;
+
+        fields.paresRecibidos.value = paresRecibidos.toFixed(2);
+        fields.docenasEquiv.value = docenasRecibidas.toFixed(2);
+        fields.paresEntregados.value = paresEntregados.toFixed(2);
+        fields.docenasEntregadas.value = docenasEntregadas.toFixed(2);
+        fields.pendiente.value = pendiente.toFixed(2);
+        fields.cobro.value = cobro.toFixed(2);
+
+        const estado = pendiente === 0 ? 'ENTREGADO' : 'PENDIENTE';
+        fields.estado.value = estado;
+        fields.estado.style.background = estado === 'ENTREGADO' ? '#c6efce' : '#fff2cc';
+        fields.estado.style.color = estado === 'ENTREGADO' ? '#006100' : '#9c6500';
+        fields.estado.style.fontWeight = '700';
+      }
+
+      Object.values(fields).forEach((field) => {
+        if (field && field.tagName !== 'INPUT' || field.type === 'text' || field.type === 'number' || field.type === 'date' || field.type === 'textarea') {
+          field.addEventListener('input', calcular);
+          field.addEventListener('change', calcular);
+        }
+      });
+
+      document.getElementById('guardarBtn').addEventListener('click', () => {
+        const fecha = document.getElementById('fecha').value || 'Sin fecha';
+        const cliente = document.getElementById('cliente').value || 'Sin cliente';
+        const producto = fields.producto.value || '---';
+        const empaque = fields.empaque.value || '---';
+        const cantRecibida = fields.cantRecibida.value || '0';
+        const paresRecibidos = fields.paresRecibidos.value || '0';
+        const docenasEquiv = fields.docenasEquiv.value || '0';
+        const cantEntregada = fields.cantEntregada.value || '0';
+        const paresEntregados = fields.paresEntregados.value || '0';
+        const docenasEntregadas = fields.docenasEntregadas.value || '0';
+        const pendiente = fields.pendiente.value || '0';
+        const cobro = fields.cobro.value || '0';
+        const estado = fields.estado.value || 'PENDIENTE';
+        const observaciones = document.getElementById('observaciones').value || 'Sin observaciones';
+
+        const tbody = document.getElementById('registroBody');
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+          <td>${fecha}</td>
+          <td>${cliente}</td>
+          <td>${producto}</td>
+          <td>${empaque}</td>
+          <td>${cantRecibida}</td>
+          <td>${paresRecibidos}</td>
+          <td>${docenasEquiv}</td>
+          <td>${cantEntregada}</td>
+          <td>${paresEntregados}</td>
+          <td>${docenasEntregadas}</td>
+          <td>${pendiente}</td>
+          <td>$${Number(cobro).toFixed(2)}</td>
+          <td>${estado}</td>
+          <td>${observaciones}</td>
+        `;
+
+        tbody.appendChild(row);
+        updateSummary();
+      });
+
+      document.getElementById('limpiarBtn').addEventListener('click', () => {
+        document.getElementById('fecha').value = '';
+        document.getElementById('cliente').value = '';
+        fields.producto.value = '';
+        fields.empaque.value = '';
+        fields.cantRecibida.value = '';
+        fields.cantEntregada.value = '';
+        document.getElementById('observaciones').value = '';
+        ['paresRecibidos','docenasEquiv','paresEntregados','docenasEntregadas','pendiente','cobro','estado'].forEach((id) => {
+          const el = document.getElementById(id);
+          el.value = '';
+        });
+      });
+
+      function updateSummary() {
+        const rows = [...document.querySelectorAll('#registroBody tr')];
+        let totalParesRecibidos = 0;
+        let totalParesEntregados = 0;
+        let totalPendientes = 0;
+        let totalCobro = 0;
+
+        rows.forEach((row) => {
+          const cells = row.children;
+          totalParesRecibidos += Number(cells[5].textContent || 0);
+          totalParesEntregados += Number(cells[8].textContent || 0);
+          totalPendientes += Number(cells[10].textContent || 0);
+          totalCobro += Number((cells[11].textContent || '$0').replace('$', ''));
+        });
+
+        document.getElementById('totalRecibidos').textContent = totalParesRecibidos.toFixed(2);
+        document.getElementById('totalEntregados').textContent = totalParesEntregados.toFixed(2);
+        document.getElementById('totalPendientes').textContent = totalPendientes.toFixed(2);
+        document.getElementById('totalCobro').textContent = `$${totalCobro.toFixed(2)}`;
+      }
+
+      calcular();
+    </script>
+  </body>
+</html>
