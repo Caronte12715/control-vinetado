@@ -150,6 +150,11 @@
         color: var(--navy-dark);
       }
 
+      .success {
+        background: #e8f7ee;
+        color: #0f6b39;
+      }
+
       .summary {
         margin-top: 30px;
       }
@@ -277,6 +282,11 @@
           </div>
 
           <div class="field">
+            <label for="marca">Marca del zapato</label>
+            <input id="marca" type="text" placeholder="Ej. Nike, Adidas, Puma" />
+          </div>
+
+          <div class="field">
             <label for="producto">Producto</label>
             <select id="producto">
               <option value="">Seleccione</option>
@@ -349,6 +359,8 @@
         <div class="actions">
           <button class="primary" type="button" id="guardarBtn">Guardar registro</button>
           <button class="secondary" type="button" id="limpiarBtn">Limpiar formulario</button>
+          <button class="secondary" type="button" id="imprimirBtn">Imprimir</button>
+          <button class="success" type="button" id="excelBtn">Exportar a Excel</button>
         </div>
 
         <div class="summary">
@@ -424,6 +436,7 @@
 
     <script>
       const fields = {
+        marca: document.getElementById('marca'),
         producto: document.getElementById('producto'),
         empaque: document.getElementById('empaque'),
         cantRecibida: document.getElementById('cantRecibida'),
@@ -443,6 +456,7 @@
           <tr>
             <th>Fecha</th>
             <th>Cliente</th>
+            <th>Marca</th>
             <th>Producto</th>
             <th>Empaque</th>
             <th>Cant. recibida</th>
@@ -513,6 +527,7 @@
       document.getElementById('guardarBtn').addEventListener('click', () => {
         const fecha = document.getElementById('fecha').value || 'Sin fecha';
         const cliente = document.getElementById('cliente').value || 'Sin cliente';
+        const marca = fields.marca.value || 'Sin marca';
         const producto = fields.producto.value || '---';
         const empaque = fields.empaque.value || '---';
         const cantRecibida = fields.cantRecibida.value || '0';
@@ -532,6 +547,7 @@
         row.innerHTML = `
           <td>${fecha}</td>
           <td>${cliente}</td>
+          <td>${marca}</td>
           <td>${producto}</td>
           <td>${empaque}</td>
           <td>${cantRecibida}</td>
@@ -553,6 +569,7 @@
       document.getElementById('limpiarBtn').addEventListener('click', () => {
         document.getElementById('fecha').value = '';
         document.getElementById('cliente').value = '';
+        fields.marca.value = '';
         fields.producto.value = '';
         fields.empaque.value = '';
         fields.cantRecibida.value = '';
@@ -562,6 +579,33 @@
           const el = document.getElementById(id);
           el.value = '';
         });
+      });
+
+      document.getElementById('imprimirBtn').addEventListener('click', () => {
+        window.print();
+      });
+
+      document.getElementById('excelBtn').addEventListener('click', () => {
+        const headers = [
+          'Fecha', 'Cliente', 'Marca', 'Producto', 'Empaque', 'Cantidad recibida',
+          'Pares recibidos', 'Docenas equivalentes', 'Cantidad entregada',
+          'Pares entregados', 'Docenas entregadas', 'Pendiente', 'Cobro', 'Estado', 'Observaciones'
+        ];
+
+        const rows = [...document.querySelectorAll('#registroBody tr')].map((row) =>
+          [...row.children].map((cell) => `"${String(cell.textContent || '').replace(/"/g, '""')}"`).join(',')
+        );
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'control_vinetado.xls';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       });
 
       function updateSummary() {
